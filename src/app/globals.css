@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f6f9;
+  --foreground: #182030;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-teal: #2b7a85;
+  --color-teal-dark: #0f5b69;
+  --color-orange: #f49716;
+  --color-rose: #e94168;
+  --color-ink: #0c2a30;
+  --font-sans: "Calibri", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Arial Rounded MT Bold", "Arial Rounded MT", "Calibri",
+    system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Calibri", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
