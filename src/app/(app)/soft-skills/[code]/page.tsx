@@ -54,9 +54,19 @@ const INTERPRETATION: Record<string, React.ReactNode> = {
 };
 
 const SYNTHESE: Record<string, string> = {
-  assertivite:
-    "Ton profil est nettement assertif : tu exprimes tes besoins clairement tout en respectant l’autre. Un léger recours à la manipulation peut apparaître sous pression — un point de vigilance à surveiller.",
   disc: "Tu privilégies la fiabilité et l’écoute. Ton axe de développement : oser davantage la prise d’initiative directe (couleur Rouge) quand la situation l’exige.",
+};
+
+// Synthèse d'assertivité, adaptée à la tendance dominante réelle.
+const ASSERT_SYNTHESE: Record<string, string> = {
+  fuite:
+    "Ta tendance dominante est la fuite : tu évites le conflit et diffères l’expression de ton désaccord. Axe de progrès : oser exprimer tes besoins plus tôt et plus clairement, sans attendre.",
+  attaque:
+    "Ta tendance dominante est l’attaque : tu t’imposes et défends ton point de vue avec force. Axe de progrès : laisser davantage d’espace à l’autre et rechercher le compromis gagnant-gagnant.",
+  manipulation:
+    "Ta tendance dominante est la manipulation : tu obtiens par l’influence et des voies détournées. Axe de progrès : gagner en transparence pour installer une relation de confiance durable.",
+  assertivite:
+    "Ton profil est nettement assertif : tu exprimes tes besoins clairement, dans le respect de l’autre. Continue à cultiver cette posture, en particulier sous pression.",
 };
 
 export default async function SoftSkillDetailPage({
@@ -91,6 +101,13 @@ export default async function SoftSkillDetailPage({
         )
       : null;
 
+  const syntheseText =
+    code === "assertivite"
+      ? dominant
+        ? ASSERT_SYNTHESE[dominant.code]
+        : null
+      : SYNTHESE[code];
+
   return (
     <div>
       <Link
@@ -108,15 +125,25 @@ export default async function SoftSkillDetailPage({
           <p className="text-slate-500">
             Tu n’as pas encore passé ce questionnaire.
           </p>
-          {q.source === "google_form" && q.formUrl && (
-            <a
-              href={q.formUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+          {q.source === "natif" ? (
+            <Link
+              href={`/soft-skills/${code}/passer`}
               className="mt-4 inline-flex rounded-xl bg-teal px-4 py-2.5 text-sm font-bold text-white transition hover:bg-teal-dark"
             >
-              Répondre au questionnaire →
-            </a>
+              Passer le questionnaire →
+            </Link>
+          ) : (
+            q.source === "google_form" &&
+            q.formUrl && (
+              <a
+                href={q.formUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex rounded-xl bg-teal px-4 py-2.5 text-sm font-bold text-white transition hover:bg-teal-dark"
+              >
+                Répondre au questionnaire →
+              </a>
+            )
           )}
         </div>
       ) : (
@@ -176,9 +203,9 @@ export default async function SoftSkillDetailPage({
                 <p>Voici la restitution de ton profil.</p>
               )}
             </div>
-            {SYNTHESE[code] && (
+            {syntheseText && (
               <p className="mt-4 rounded-xl bg-teal/5 px-4 py-3 text-sm font-medium text-teal-dark">
-                💡 {SYNTHESE[code]}
+                💡 {syntheseText}
               </p>
             )}
           </section>

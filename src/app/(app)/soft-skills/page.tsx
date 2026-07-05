@@ -47,6 +47,13 @@ function Card({ q }: { q: SoftSkillItem }) {
             >
               Voir le résultat →
             </Link>
+          ) : q.source === "natif" ? (
+            <Link
+              href={`/soft-skills/${q.code}/passer`}
+              className="inline-flex rounded-lg bg-teal px-3 py-1.5 text-xs font-bold text-white transition hover:bg-teal-dark"
+            >
+              Passer le questionnaire →
+            </Link>
           ) : q.source === "google_form" && q.formUrl ? (
             <a
               href={q.formUrl}
