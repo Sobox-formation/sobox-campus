@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import Sidebar from "@/components/sidebar";
+import FormateurSidebar from "@/components/formateur-sidebar";
 
-export default async function AppLayout({
+export default async function FormateurLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -15,33 +15,29 @@ export default async function AppLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("nom, prenom, email, role")
+    .select("nom, prenom, role")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  // Les formateurs / admins ont leur propre espace
-  if (profile?.role === "formateur" || profile?.role === "admin") {
-    redirect("/formateur");
+  // Réservé aux formateurs et admins
+  if (profile?.role !== "formateur" && profile?.role !== "admin") {
+    redirect("/dashboard");
   }
 
-  const { data: inscriptions } = await supabase
-    .from("inscriptions")
+  const { data: pf } = await supabase
+    .from("parcours_formateurs")
     .select("parcours:parcours_id (nom)")
-    .eq("profil_id", user.id)
+    .eq("formateur_id", user.id)
     .limit(1);
-
-  const insc = inscriptions?.[0];
-  const parc = (
-    Array.isArray(insc?.parcours) ? insc?.parcours[0] : insc?.parcours
-  ) as { nom: string } | undefined;
+  const parc = pf?.[0]?.parcours as { nom: string } | { nom: string }[] | undefined;
+  const parcoursNom = Array.isArray(parc) ? parc[0]?.nom : parc?.nom;
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[16rem_1fr]">
-      <Sidebar
+      <FormateurSidebar
         prenom={profile?.prenom ?? ""}
         nom={profile?.nom ?? ""}
-        email={profile?.email ?? user.email ?? ""}
-        parcoursNom={parc?.nom ?? "Aucun parcours"}
+        parcoursNom={parcoursNom ?? "Ma promo"}
       />
       <main className="min-w-0">
         <div className="mx-auto max-w-5xl px-6 py-10">{children}</div>
