@@ -19,10 +19,9 @@ export default async function AppLayout({
     .eq("id", user.id)
     .single();
 
-  // Les formateurs / admins ont leur propre espace
-  if (profile?.role === "formateur" || profile?.role === "admin") {
-    redirect("/formateur");
-  }
+  // Les admins et formateurs ont leur propre espace
+  if (profile?.role === "admin") redirect("/admin");
+  if (profile?.role === "formateur") redirect("/formateur");
 
   const { data: inscriptions } = await supabase
     .from("inscriptions")
