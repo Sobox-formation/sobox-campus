@@ -118,3 +118,45 @@ export async function getParcoursForEdit(
   if (error || !data) return null;
   return data as ParcoursEdit;
 }
+
+/* ---------- Utilisateurs & inscriptions ---------- */
+
+export type AdminUser = {
+  id: string;
+  email: string | null;
+  prenom: string | null;
+  nom: string | null;
+  role: string;
+  nbInscriptions: number;
+};
+
+export type Member = {
+  id: string;
+  prenom: string | null;
+  nom: string | null;
+  email: string | null;
+  progression?: number;
+};
+
+export type ParcoursMembers = {
+  apprenants: Member[];
+  formateurs: Member[];
+};
+
+export async function getAdminUsers(): Promise<AdminUser[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_list_users");
+  if (error || !data) return [];
+  return data as AdminUser[];
+}
+
+export async function getParcoursMembers(
+  parcoursId: string,
+): Promise<ParcoursMembers> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_parcours_members", {
+    p_parcours_id: parcoursId,
+  });
+  if (error || !data) return { apprenants: [], formateurs: [] };
+  return data as ParcoursMembers;
+}

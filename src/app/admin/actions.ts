@@ -109,3 +109,97 @@ export async function deleteParcours(
   revalidatePath("/admin/parcours");
   return { ok: true };
 }
+
+/* ---------- Utilisateurs & inscriptions ---------- */
+
+export async function createUser(
+  email: string,
+  password: string,
+  prenom: string,
+  nom: string,
+  role: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_create_user", {
+    p_email: email,
+    p_password: password,
+    p_prenom: prenom,
+    p_nom: nom,
+    p_role: role,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/utilisateurs");
+  return { ok: true };
+}
+
+export async function setUserRole(
+  userId: string,
+  role: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_set_user_role", {
+    p_user_id: userId,
+    p_role: role,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/utilisateurs");
+  return { ok: true };
+}
+
+export async function enroll(
+  profilId: string,
+  parcoursId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_enroll", {
+    p_profil_id: profilId,
+    p_parcours_id: parcoursId,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/admin/parcours/${parcoursId}/membres`);
+  return { ok: true };
+}
+
+export async function unenroll(
+  profilId: string,
+  parcoursId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_unenroll", {
+    p_profil_id: profilId,
+    p_parcours_id: parcoursId,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/admin/parcours/${parcoursId}/membres`);
+  return { ok: true };
+}
+
+export async function assignFormateur(
+  formateurId: string,
+  parcoursId: string,
+  rolePedago: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_assign_formateur", {
+    p_formateur_id: formateurId,
+    p_parcours_id: parcoursId,
+    p_role_pedago: rolePedago,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/admin/parcours/${parcoursId}/membres`);
+  return { ok: true };
+}
+
+export async function unassignFormateur(
+  formateurId: string,
+  parcoursId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_unassign_formateur", {
+    p_formateur_id: formateurId,
+    p_parcours_id: parcoursId,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/admin/parcours/${parcoursId}/membres`);
+  return { ok: true };
+}

@@ -121,12 +121,20 @@ export default function ParcoursEditor({ parcours }: { parcours: ParcoursEdit })
 
   return (
     <div>
-      <Link
-        href="/admin/parcours"
-        className="text-sm font-semibold text-teal hover:underline"
-      >
-        ← Tous les parcours
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/admin/parcours"
+          className="text-sm font-semibold text-teal hover:underline"
+        >
+          ← Tous les parcours
+        </Link>
+        <Link
+          href={`/admin/parcours/${parcours.id}/membres`}
+          className="rounded-lg border border-teal px-3 py-1.5 text-xs font-bold text-teal transition hover:bg-teal hover:text-white"
+        >
+          Participants →
+        </Link>
+      </div>
 
       {/* Métadonnées */}
       <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5">

@@ -31,6 +31,9 @@ export default async function AdminLayout({
             <Link href="/admin/parcours" className="transition hover:text-teal">
               Parcours
             </Link>
+            <Link href="/admin/utilisateurs" className="transition hover:text-teal">
+              Utilisateurs
+            </Link>
             <Link href="/admin/quiz" className="transition hover:text-teal">
               Quiz
             </Link>
