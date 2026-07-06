@@ -28,6 +28,9 @@ export default async function AdminLayout({
             SOBOX <span className="text-teal">· Admin</span>
           </Link>
           <nav className="flex gap-4 text-sm font-semibold text-slate-500">
+            <Link href="/admin/parcours" className="transition hover:text-teal">
+              Parcours
+            </Link>
             <Link href="/admin/quiz" className="transition hover:text-teal">
               Quiz
             </Link>

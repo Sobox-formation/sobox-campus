@@ -64,3 +64,48 @@ export async function deleteQuiz(
   revalidatePath("/admin/quiz");
   return { ok: true };
 }
+
+/* ---------- Constructeur de parcours ---------- */
+
+export async function createParcours(
+  nom: string,
+  client: string,
+): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const supabase = await assertAdmin();
+  const { data, error } = await supabase.rpc("admin_create_parcours", {
+    p_nom: nom,
+    p_client: client,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/parcours");
+  return { ok: true, id: data as string };
+}
+
+export async function saveParcours(
+  id: string,
+  meta: Record<string, unknown>,
+  modules: Record<string, unknown>[],
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_save_parcours", {
+    p_id: id,
+    p_meta: meta,
+    p_modules: modules,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/admin/parcours/${id}`);
+  revalidatePath("/admin/parcours");
+  revalidatePath("/parcours");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function deleteParcours(
+  id: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_delete_parcours", { p_id: id });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/parcours");
+  return { ok: true };
+}
