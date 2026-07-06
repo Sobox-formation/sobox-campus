@@ -103,6 +103,55 @@ export async function getEvaluations(): Promise<{
   return { parcours: data.parcours, quizzes: list, history };
 }
 
+// Quiz autonomes (sans module) — la Bibliothèque de quiz, en accès libre.
+export async function getQuizLibrary(): Promise<QuizListItem[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: quizzes } = await supabase
+    .from("quiz")
+    .select("id, titre, description, source, form_url, seuil_reussite, module_id")
+    .is("module_id", null)
+    .eq("source", "natif");
+
+  const { data: results } = await supabase
+    .from("quiz_resultats")
+    .select("quiz_id, score, reussi")
+    .eq("profil_id", user.id);
+
+  const resByQuiz = new Map<string, { score: number; reussi: boolean }[]>();
+  (results ?? []).forEach((r) => {
+    const arr = resByQuiz.get(r.quiz_id) ?? [];
+    arr.push({ score: Number(r.score), reussi: r.reussi });
+    resByQuiz.set(r.quiz_id, arr);
+  });
+
+  return (quizzes ?? [])
+    .map((qz) => {
+      const rs = resByQuiz.get(qz.id) ?? [];
+      const best = rs.length ? rs.reduce((a, b) => (b.score > a.score ? b : a)) : null;
+      return {
+        id: qz.id,
+        titre: qz.titre,
+        description: qz.description,
+        source: qz.source,
+        formUrl: qz.form_url,
+        seuil: qz.seuil_reussite,
+        moduleCode: "",
+        moduleTitre: "",
+        ordre: 999,
+        statut: "disponible",
+        locked: false,
+        best: best ? { score: best.score, reussi: best.reussi } : null,
+        attempts: rs.length,
+      };
+    })
+    .sort((a, b) => a.titre.localeCompare(b.titre));
+}
+
 export type PlayQuestion = {
   id: string;
   enonce: string;
@@ -131,9 +180,12 @@ export async function getQuizForPlay(quizId: string): Promise<{
     return { quiz: null, questions: [], locked: false, found: false };
   }
 
+  // Un quiz autonome (bibliothèque, sans module) n'est jamais verrouillé.
   const data = await getParcoursData();
   const m = data?.modules.find((mm) => mm.id === qz.module_id);
-  const locked = (m?.statut ?? "verrouille") === "verrouille";
+  const locked = qz.module_id
+    ? (m?.statut ?? "verrouille") === "verrouille"
+    : false;
 
   const { data: qs } = await supabase
     .from("quiz_questions")

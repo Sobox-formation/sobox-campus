@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getEvaluations, type QuizListItem } from "@/lib/quiz";
+import { getEvaluations, getQuizLibrary, type QuizListItem } from "@/lib/quiz";
 
 function QuizCard({ q }: { q: QuizListItem }) {
   const passed = q.best?.reussi;
@@ -73,6 +73,7 @@ export default async function EvaluationsPage() {
   const data = await getEvaluations();
   const quizzes = data?.quizzes ?? [];
   const history = data?.history ?? [];
+  const library = await getQuizLibrary();
 
   return (
     <div>
@@ -138,6 +139,26 @@ export default async function EvaluationsPage() {
             </div>
           )}
         </>
+      )}
+
+      {library.length > 0 && (
+        <section className="mt-14">
+          <p className="text-sm font-semibold uppercase tracking-widest text-teal">
+            En accès libre
+          </p>
+          <h2 className="font-display mt-1 text-2xl font-bold text-ink">
+            Bibliothèque de quiz
+          </h2>
+          <p className="mt-2 max-w-2xl text-slate-500">
+            Des quiz thématiques pour t’entraîner et approfondir, indépendamment
+            de ton parcours.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {library.map((q) => (
+              <QuizCard key={q.id} q={q} />
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );
