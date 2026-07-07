@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { getQuestionnaireDetail } from "@/lib/softskills";
+import {
+  getQuestionnaireDetail,
+  isScoreType,
+  scoreTotal,
+  getScoreBand,
+} from "@/lib/softskills";
 
 const DIM_COLOR: Record<string, string> = {
   fuite: "#8A9293",
@@ -108,6 +113,13 @@ export default async function SoftSkillDetailPage({
         : null
       : SYNTHESE[code];
 
+  // Mode « score + niveau » (auto-diags scorés, ex. confiance en soi)
+  const scored = isScoreType(code);
+  const total = r ? scoreTotal(r.scores) : 0;
+  const maxTotal = q.dimensions.reduce((s, d) => s + d.scoreMax, 0);
+  const pctScore = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
+  const band = r ? getScoreBand(code, total) : null;
+
   return (
     <div>
       <Link
@@ -146,6 +158,44 @@ export default async function SoftSkillDetailPage({
             )
           )}
         </div>
+      ) : scored ? (
+        <>
+          {/* Score global + niveau */}
+          <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 text-center">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Ton score
+            </p>
+            <p className="font-display mt-1 text-4xl font-bold text-ink">
+              {total}
+              <span className="text-xl text-slate-400"> / {maxTotal}</span>
+            </p>
+            <div className="mx-auto mt-4 h-3 max-w-md overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-teal transition-all"
+                style={{ width: `${pctScore}%` }}
+              />
+            </div>
+            {band && (
+              <span className="mt-4 inline-flex rounded-full bg-teal/10 px-4 py-1.5 text-sm font-bold text-teal-dark">
+                {band.label}
+              </span>
+            )}
+          </section>
+          {band && (
+            <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
+              <h3 className="font-display text-lg font-bold text-ink">
+                Ce que ça dit de toi
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                {band.text}
+              </p>
+              <p className="mt-4 rounded-xl bg-orange/5 px-4 py-3 text-xs font-medium text-slate-500">
+                ⓘ Restitution synthétique — une analyse plus fine sera proposée
+                prochainement.
+              </p>
+            </section>
+          )}
+        </>
       ) : (
         <>
           <div className="mt-2 flex flex-wrap items-center gap-3">

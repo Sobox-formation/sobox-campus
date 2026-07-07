@@ -96,3 +96,59 @@ export async function getQuestionnaireDetail(
   const all = await getSoftSkills();
   return all?.find((q) => q.code === code) ?? null;
 }
+
+/* ---------- Questionnaires de type « score global + niveau » ----------
+ * Ces auto-diagnostics ne sont pas des profils par dimensions : ils
+ * produisent un score total (une seule « dimension score ») interprété
+ * en un niveau. Les tranches ci-dessous sont provisoires (à affiner). */
+
+export type ScoreBand = {
+  min: number;
+  max: number;
+  label: string;
+  text: string;
+};
+
+export const SCORE_BANDS: Record<string, ScoreBand[]> = {
+  confiance_soi: [
+    {
+      min: 0,
+      max: 17,
+      label: "Confiance à construire",
+      text: "Dans plusieurs situations, tu doutes encore de toi. La confiance est un muscle : commence par de petits défis où tu te sens légitime, et capitalise sur chaque réussite.",
+    },
+    {
+      min: 18,
+      max: 29,
+      label: "Confiance en développement",
+      text: "Ta confiance est présente mais fluctuante selon les contextes. Repère les situations qui te déstabilisent pour mieux t'y préparer.",
+    },
+    {
+      min: 30,
+      max: 40,
+      label: "Bonne confiance en soi",
+      text: "Tu abordes la plupart des situations avec assurance. Continue à sortir de ta zone de confort pour l'ancrer encore davantage.",
+    },
+    {
+      min: 41,
+      max: 50,
+      label: "Confiance affirmée",
+      text: "Tu dégages une réelle assurance dans la majorité des situations. Veille à ce qu'elle reste de l'assurance… et non de l'excès de confiance.",
+    },
+  ],
+};
+
+/** Un questionnaire est « scoré » (score+niveau) s'il a une table de tranches. */
+export function isScoreType(code: string): boolean {
+  return code in SCORE_BANDS;
+}
+
+export function scoreTotal(scores: Record<string, number>): number {
+  return Object.values(scores).reduce((a, b) => a + Number(b || 0), 0);
+}
+
+export function getScoreBand(code: string, total: number): ScoreBand | null {
+  const bands = SCORE_BANDS[code];
+  if (!bands) return null;
+  return bands.find((b) => total >= b.min && total <= b.max) ?? null;
+}

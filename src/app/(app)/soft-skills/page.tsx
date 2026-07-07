@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { getSoftSkills, type SoftSkillItem } from "@/lib/softskills";
+import {
+  getSoftSkills,
+  isScoreType,
+  scoreTotal,
+  getScoreBand,
+  type SoftSkillItem,
+} from "@/lib/softskills";
 
 const COLOR: Record<string, string> = {
   assertivite: "#E94168",
@@ -15,6 +21,11 @@ const COLOR: Record<string, string> = {
 function Card({ q }: { q: SoftSkillItem }) {
   const color = COLOR[q.code] ?? "#2B7A85";
   const done = !!q.result;
+  const scoreLabel =
+    isScoreType(q.code) && q.result
+      ? (getScoreBand(q.code, scoreTotal(q.result.scores))?.label ?? null)
+      : null;
+  const doneLabel = scoreLabel ?? q.result?.profilDominant ?? "";
 
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -33,7 +44,7 @@ function Card({ q }: { q: SoftSkillItem }) {
           className="text-[10.5px] font-bold uppercase tracking-wider"
           style={{ color: done ? "#059669" : "#94a3b8" }}
         >
-          {done ? `Complété · ${q.result?.profilDominant ?? ""}` : "À faire"}
+          {done ? `Complété · ${doneLabel}` : "À faire"}
         </p>
         <h3 className="mt-1.5 font-semibold text-ink">{q.titre}</h3>
         {q.description && (
