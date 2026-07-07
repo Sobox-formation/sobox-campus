@@ -8,12 +8,12 @@ import type { QuestionnairePlay } from "@/lib/questionnaire";
 
 type Answer = boolean | number | string;
 
-const ECHELLE = [
-  { v: 1, label: "Pas du tout" },
-  { v: 2, label: "Plutôt non" },
-  { v: 3, label: "Moyen" },
-  { v: 4, label: "Plutôt oui" },
-  { v: 5, label: "Tout à fait" },
+const DEFAULT_LABELS_5 = [
+  "Pas du tout",
+  "Plutôt non",
+  "Moyen",
+  "Plutôt oui",
+  "Tout à fait",
 ];
 
 export default function QuestionnairePlayer({
@@ -22,8 +22,16 @@ export default function QuestionnairePlayer({
   questionnaire: QuestionnairePlay;
 }) {
   const router = useRouter();
-  const { questions, code, titre, consigne } = questionnaire;
+  const { questions, code, titre, consigne, echelleMax, echelleLabels } =
+    questionnaire;
   const total = questions.length;
+
+  const echelle = Array.from({ length: echelleMax }, (_, i) => ({
+    v: i + 1,
+    label:
+      echelleLabels?.[i] ??
+      (echelleMax === 5 ? DEFAULT_LABELS_5[i] : String(i + 1)),
+  }));
 
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
@@ -128,8 +136,13 @@ export default function QuestionnairePlayer({
 
         {current.type === "echelle" && (
           <div className="mt-6">
-            <div className="grid grid-cols-5 gap-2">
-              {ECHELLE.map((e) => (
+            <div
+              className="grid gap-2"
+              style={{
+                gridTemplateColumns: `repeat(${echelleMax}, minmax(0,1fr))`,
+              }}
+            >
+              {echelle.map((e) => (
                 <button
                   key={e.v}
                   type="button"

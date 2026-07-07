@@ -16,6 +16,8 @@ export type QuestionnairePlay = {
   titre: string;
   description: string | null;
   consigne: string;
+  echelleMax: number;
+  echelleLabels: string[] | null;
   questions: PlayQuestion[];
 };
 
@@ -41,7 +43,7 @@ export async function getQuestionnaireForPlay(
 
   const { data: q } = await supabase
     .from("questionnaires")
-    .select("id, code, titre, description, source")
+    .select("id, code, titre, description, source, echelle_max, echelle_labels")
     .eq("code", code)
     .maybeSingle();
   if (!q || q.source !== "natif") return null;
@@ -79,6 +81,10 @@ export async function getQuestionnaireForPlay(
     consigne:
       CONSIGNE[code] ??
       "Réponds spontanément à chaque question : il n'y a ni bonne ni mauvaise réponse.",
+    echelleMax: Number(q.echelle_max) || 5,
+    echelleLabels: Array.isArray(q.echelle_labels)
+      ? (q.echelle_labels as string[])
+      : null,
     questions: questions.map((x) => ({
       id: x.id,
       ordre: x.ordre,
