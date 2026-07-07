@@ -6,6 +6,16 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { QuestionnairePlay } from "@/lib/questionnaire";
 
+type Answer = boolean | number | string;
+
+const ECHELLE = [
+  { v: 1, label: "Pas du tout" },
+  { v: 2, label: "Plutôt non" },
+  { v: 3, label: "Moyen" },
+  { v: 4, label: "Plutôt oui" },
+  { v: 5, label: "Tout à fait" },
+];
+
 export default function QuestionnairePlayer({
   questionnaire,
 }: {
@@ -16,7 +26,7 @@ export default function QuestionnairePlayer({
   const total = questions.length;
 
   const [idx, setIdx] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, boolean>>({});
+  const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,10 +35,9 @@ export default function QuestionnairePlayer({
   const allAnswered = answeredCount === total;
   const currentAnswer = answers[current.id];
 
-  function answer(val: boolean) {
+  function answer(val: Answer) {
     setAnswers((a) => ({ ...a, [current.id]: val }));
     if (idx < total - 1) {
-      // petit délai pour laisser voir la sélection avant d'avancer
       setTimeout(() => setIdx((i) => Math.min(i + 1, total - 1)), 160);
     }
   }
@@ -37,13 +46,11 @@ export default function QuestionnairePlayer({
     if (submitting || !allAnswered) return;
     setSubmitting(true);
     setError(null);
-
     const supabase = createClient();
     const { data, error: fnError } = await supabase.functions.invoke(
       "score-questionnaire",
       { body: { code, answers } },
     );
-
     if (fnError || (data && (data as { error?: string }).error)) {
       setError(
         "Une erreur est survenue lors de l'enregistrement. Merci de réessayer.",
@@ -51,7 +58,6 @@ export default function QuestionnairePlayer({
       setSubmitting(false);
       return;
     }
-
     router.push(`/soft-skills/${code}`);
     router.refresh();
   }
@@ -85,38 +91,93 @@ export default function QuestionnairePlayer({
       {/* Question courante */}
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
         <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-          Affirmation {idx + 1} / {total}
+          Question {idx + 1} / {total}
         </p>
-        <p className="mt-3 min-h-[72px] text-lg font-medium leading-relaxed text-ink">
+        <p className="mt-3 min-h-[64px] text-lg font-medium leading-relaxed text-ink">
           {current.texte}
         </p>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => answer(true)}
-            className={[
-              "rounded-xl border-2 px-4 py-4 text-sm font-bold transition",
-              currentAnswer === true
-                ? "border-teal bg-teal text-white"
-                : "border-slate-200 text-slate-600 hover:border-teal hover:text-teal",
-            ].join(" ")}
-          >
-            Plutôt VRAI
-          </button>
-          <button
-            type="button"
-            onClick={() => answer(false)}
-            className={[
-              "rounded-xl border-2 px-4 py-4 text-sm font-bold transition",
-              currentAnswer === false
-                ? "border-rose bg-rose text-white"
-                : "border-slate-200 text-slate-600 hover:border-rose hover:text-rose",
-            ].join(" ")}
-          >
-            Plutôt FAUX
-          </button>
-        </div>
+        {current.type === "binaire" && (
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => answer(true)}
+              className={[
+                "rounded-xl border-2 px-4 py-4 text-sm font-bold transition",
+                currentAnswer === true
+                  ? "border-teal bg-teal text-white"
+                  : "border-slate-200 text-slate-600 hover:border-teal hover:text-teal",
+              ].join(" ")}
+            >
+              Plutôt VRAI
+            </button>
+            <button
+              type="button"
+              onClick={() => answer(false)}
+              className={[
+                "rounded-xl border-2 px-4 py-4 text-sm font-bold transition",
+                currentAnswer === false
+                  ? "border-rose bg-rose text-white"
+                  : "border-slate-200 text-slate-600 hover:border-rose hover:text-rose",
+              ].join(" ")}
+            >
+              Plutôt FAUX
+            </button>
+          </div>
+        )}
+
+        {current.type === "echelle" && (
+          <div className="mt-6">
+            <div className="grid grid-cols-5 gap-2">
+              {ECHELLE.map((e) => (
+                <button
+                  key={e.v}
+                  type="button"
+                  onClick={() => answer(e.v)}
+                  className={[
+                    "flex flex-col items-center gap-1 rounded-xl border-2 px-1 py-3 transition",
+                    currentAnswer === e.v
+                      ? "border-teal bg-teal text-white"
+                      : "border-slate-200 text-slate-500 hover:border-teal",
+                  ].join(" ")}
+                >
+                  <span className="text-base font-bold">{e.v}</span>
+                  <span className="text-[10px] leading-tight">{e.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {current.type === "choix" && (
+          <div className="mt-6 space-y-2.5">
+            {current.options.map((o, i) => (
+              <button
+                key={o.id}
+                type="button"
+                onClick={() => answer(o.id)}
+                className={[
+                  "flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm font-medium transition",
+                  currentAnswer === o.id
+                    ? "border-teal bg-teal/5 text-ink"
+                    : "border-slate-200 text-slate-600 hover:border-teal",
+                ].join(" ")}
+              >
+                <span
+                  className={[
+                    "grid h-6 w-6 flex-none place-items-center rounded-full text-xs font-bold",
+                    currentAnswer === o.id
+                      ? "bg-teal text-white"
+                      : "bg-slate-100 text-slate-500",
+                  ].join(" ")}
+                >
+                  {"abcdefgh"[i]}
+                </span>
+                {o.texte}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -143,7 +204,7 @@ export default function QuestionnairePlayer({
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
         {!allAnswered ? (
           <p className="text-center text-sm text-slate-500">
-            Réponds aux {total} affirmations pour découvrir ton profil.
+            Réponds aux {total} questions pour découvrir ton profil.
             <span className="ml-1 font-semibold text-slate-600">
               Reste {total - answeredCount} à compléter.
             </span>
@@ -151,7 +212,7 @@ export default function QuestionnairePlayer({
         ) : (
           <div className="flex flex-col items-center gap-3">
             <p className="text-sm font-semibold text-emerald-600">
-              ✓ Toutes les affirmations sont complétées.
+              ✓ Toutes les questions sont complétées.
             </p>
             <button
               type="button"

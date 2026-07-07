@@ -1,10 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 
+export type PlayOption = { id: string; texte: string };
+
 export type PlayQuestion = {
   id: string;
   ordre: number;
   texte: string;
   type: string;
+  options: PlayOption[];
 };
 
 export type QuestionnairePlay = {
@@ -51,6 +54,23 @@ export async function getQuestionnaireForPlay(
 
   if (!questions || questions.length === 0) return null;
 
+  // Options (pour les questions à choix). Colonnes de scoring cachées côté apprenant.
+  const { data: opts } = await supabase
+    .from("questionnaire_question_options")
+    .select("id, question_id, ordre, texte")
+    .in(
+      "question_id",
+      questions.map((x) => x.id),
+    )
+    .order("ordre");
+
+  const byQ = new Map<string, PlayOption[]>();
+  (opts ?? []).forEach((o) => {
+    const arr = byQ.get(o.question_id) ?? [];
+    arr.push({ id: o.id, texte: o.texte });
+    byQ.set(o.question_id, arr);
+  });
+
   return {
     id: q.id,
     code: q.code,
@@ -58,12 +78,13 @@ export async function getQuestionnaireForPlay(
     description: q.description,
     consigne:
       CONSIGNE[code] ??
-      "Réponds spontanément à chaque affirmation : il n'y a ni bonne ni mauvaise réponse.",
+      "Réponds spontanément à chaque question : il n'y a ni bonne ni mauvaise réponse.",
     questions: questions.map((x) => ({
       id: x.id,
       ordre: x.ordre,
       texte: x.texte,
       type: x.type,
+      options: byQ.get(x.id) ?? [],
     })),
   };
 }
