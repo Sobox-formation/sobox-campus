@@ -160,3 +160,57 @@ export async function getParcoursMembers(
   if (error || !data) return { apprenants: [], formateurs: [] };
   return data as ParcoursMembers;
 }
+
+/* ---------- Éditeur de questionnaires (profils soft-skills) ---------- */
+
+export type AdminQuestionnaireRow = {
+  id: string;
+  code: string;
+  titre: string;
+  categorie: string | null;
+  actif: boolean;
+  source: string;
+  nbDimensions: number;
+  nbQuestions: number;
+};
+
+export type QDimension = { code: string; libelle: string; score_max: number };
+export type QOption = { texte: string; poids: number; dimensionCode: string | null };
+export type QQuestion = {
+  texte: string;
+  type: string;
+  inverse: boolean;
+  dimensionCode: string | null;
+  options: QOption[];
+};
+export type QuestionnaireEdit = {
+  id: string;
+  code: string;
+  titre: string;
+  description: string | null;
+  categorie: string | null;
+  source: string;
+  actif: boolean;
+  dimensions: QDimension[];
+  questions: QQuestion[];
+};
+
+export async function getAdminQuestionnaires(): Promise<
+  AdminQuestionnaireRow[]
+> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_list_questionnaires");
+  if (error || !data) return [];
+  return data as AdminQuestionnaireRow[];
+}
+
+export async function getQuestionnaireForEdit(
+  id: string,
+): Promise<QuestionnaireEdit | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_get_questionnaire", {
+    p_id: id,
+  });
+  if (error || !data) return null;
+  return data as QuestionnaireEdit;
+}

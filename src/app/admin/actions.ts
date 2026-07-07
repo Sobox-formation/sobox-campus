@@ -203,3 +203,51 @@ export async function unassignFormateur(
   revalidatePath(`/admin/parcours/${parcoursId}/membres`);
   return { ok: true };
 }
+
+/* ---------- Éditeur de questionnaires ---------- */
+
+export async function createQuestionnaire(
+  titre: string,
+  categorie: string,
+): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const supabase = await assertAdmin();
+  const { data, error } = await supabase.rpc("admin_create_questionnaire", {
+    p_titre: titre,
+    p_categorie: categorie,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/questionnaires");
+  return { ok: true, id: data as string };
+}
+
+export async function saveQuestionnaire(
+  id: string,
+  meta: Record<string, unknown>,
+  dimensions: Record<string, unknown>[],
+  questions: Record<string, unknown>[],
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_save_questionnaire", {
+    p_id: id,
+    p_meta: meta,
+    p_dimensions: dimensions,
+    p_questions: questions,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/admin/questionnaires/${id}`);
+  revalidatePath("/admin/questionnaires");
+  revalidatePath("/soft-skills");
+  return { ok: true };
+}
+
+export async function deleteQuestionnaire(
+  id: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await assertAdmin();
+  const { error } = await supabase.rpc("admin_delete_questionnaire", {
+    p_id: id,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/questionnaires");
+  return { ok: true };
+}

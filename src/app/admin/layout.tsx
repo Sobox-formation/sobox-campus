@@ -37,6 +37,12 @@ export default async function AdminLayout({
             <Link href="/admin/quiz" className="transition hover:text-teal">
               Quiz
             </Link>
+            <Link
+              href="/admin/questionnaires"
+              className="transition hover:text-teal"
+            >
+              Questionnaires
+            </Link>
           </nav>
           <Link
             href="/formateur"
