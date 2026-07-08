@@ -136,6 +136,32 @@ export const SCORE_BANDS: Record<string, ScoreBand[]> = {
       text: "Tu dégages une réelle assurance dans la majorité des situations. Veille à ce qu'elle reste de l'assurance… et non de l'excès de confiance.",
     },
   ],
+  gestion_temps: [
+    {
+      min: 0,
+      max: 25,
+      label: "Gestion du temps à structurer",
+      text: "Le temps te subit plus que tu ne le pilotes. Priorise avec la matrice urgent/important et planifie tes journées : quelques réflexes simples changeront beaucoup.",
+    },
+    {
+      min: 26,
+      max: 45,
+      label: "Gestion du temps perfectible",
+      text: "Tu as des bases, mais l'organisation reste irrégulière. Travaille l'anticipation et la protection de tes plages de concentration (téléphone, interruptions).",
+    },
+    {
+      min: 46,
+      max: 60,
+      label: "Bonne gestion du temps",
+      text: "Tu organises et priorises plutôt bien. Continue à déléguer et à distinguer l'essentiel de l'accessoire pour gagner encore en sérénité.",
+    },
+    {
+      min: 61,
+      max: 75,
+      label: "Excellente maîtrise du temps",
+      text: "Tu pilotes ton temps avec méthode et anticipation. Veille juste à garder de la souplesse face aux imprévus… et à ne pas trop en attendre des autres.",
+    },
+  ],
 };
 
 /** Un questionnaire est « scoré » (score+niveau) s'il a une table de tranches. */
